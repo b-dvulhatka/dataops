@@ -1,0 +1,43 @@
+db.Carros.aggregate([
+    {
+        $lookup: {
+            from: "Montadoras",      
+            localField: "Montadora", 
+            foreignField: "Montadora",
+            as: "Relacionamento"     
+        }
+    },
+    {
+        $unwind: "$Relacionamento"  
+    },
+    {
+        $project: {  
+            Carro: 1,
+            Cor: 1,
+            Montadora: 1,
+            Pais: "$Relacionamento.Pais" 
+        }
+    },
+    {
+        $group: { 
+            _id: "$Pais",  
+            Carros: { 
+                $push: { 
+                    Carro: "$Carro",
+                    Cor: "$Cor",
+                    Montadora: "$Montadora"
+                }
+            }
+        }
+    },
+    {
+        $project: { 
+            Pais: "$_id",  
+            _id: 0,        
+            Carros: 1
+        }
+    },
+    {
+        $out: "AggregatedCarros"  
+    }
+]);
